@@ -2,11 +2,11 @@
   "domain": "cal_eu",
   "name": "Cal.eu",
   "version": "1.0.0",
-  "documentation": "https://cal.com/docs/api-reference/v2/introduction",
+  "documentation": "https://github.com/rpliva/hacs-cal-eu",
+  "issue_tracker": "https://github.com/rpliva/hacs-cal-eu/issues",
   "dependencies": [],
   "requirements": ["aiohttp>=3.8.0"],
-  "codeowners": [],
+  "codeowners": ["@rpliva"],
   "config_flow": true,
-  "iot_class": "cloud_polling",
-  "homeassistant": "2026.2.2"
+  "iot_class": "cloud_polling"
 }
