@@ -10,7 +10,8 @@ Custom Home Assistant integration for Cal.com (cal.eu) calendar booking service.
 | File | Purpose |
 |------|---------|
 | `custom_components/cal_eu/__init__.py` | Coordinator, setup/unload entry points |
-| `custom_components/cal_eu/sensor.py` | Bookings count + Next booking sensors |
+| `custom_components/cal_eu/calendar.py` | Calendar entity for booking view |
+| `custom_components/cal_eu/sensor.py` | Bookings, Next booking, Unconfirmed sensors |
 | `custom_components/cal_eu/config_flow.py` | API key configuration UI |
 | `custom_components/cal_eu/const.py` | Constants (API URLs, HTTP codes, domain) |
 | `custom_components/cal_eu/strings.json` | UI translations |
@@ -21,6 +22,13 @@ Custom Home Assistant integration for Cal.com (cal.eu) calendar booking service.
 - **Runtime data**: Use `entry.runtime_data` (not `hass.data[DOMAIN]`)
 - **DeviceInfo**: Use `DeviceInfo()` class (not dict)
 - **Coordinator**: Generic type `DataUpdateCoordinator[list[dict]]`
+
+## Calendar
+
+### Calendar Entity (`calendar.cal_eu_calendar`)
+- Displays upcoming bookings in HA calendar view
+- Shows title, time, location, attendees, meeting URL
+- **Translation key**: `calendar`
 
 ## Sensors
 
@@ -34,6 +42,11 @@ Custom Home Assistant integration for Cal.com (cal.eu) calendar booking service.
 - **Device class**: `timestamp` (displays as relative time)
 - **Attributes**: `title`, `end`, `location`, `meeting_url`
 - **Translation key**: `next_booking`
+
+### Unconfirmed Bookings Sensor (`sensor.cal_eu_unconfirmed_bookings`)
+- **State**: Count of pending/unconfirmed bookings
+- **Attributes**: `bookings` array with unconfirmed booking details
+- **Translation key**: `unconfirmed_bookings`
 
 ## Events
 
@@ -62,7 +75,7 @@ meeting_url: "https://cal.eu/video/xyz"
 | `release.yml` | Manual dispatch | Version bump + GitHub release |
 
 ## Dependencies
-- `homeassistant>=2026.2.2`
+- `homeassistant>=2026.2.0`
 - `aiohttp>=3.8.0`
 - `ruff==0.11.5` (dev)
-- `pytest-homeassistant-custom-component==0.13.210` (dev)
+- `pytest-homeassistant-custom-component==0.13.315` (dev)

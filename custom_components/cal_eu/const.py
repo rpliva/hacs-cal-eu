@@ -14,3 +14,6 @@ EVENT_NEW_BOOKING = "cal_eu_new_booking"
 # HTTP Status Codes
 HTTP_OK = 200
 HTTP_UNAUTHORIZED = 401
+
+# Booking Status
+BOOKING_STATUS_PENDING = "pending"

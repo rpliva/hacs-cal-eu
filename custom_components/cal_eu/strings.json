@@ -30,6 +30,9 @@
       },
       "next_booking": {
         "name": "Next booking"
+      },
+      "unconfirmed_bookings": {
+        "name": "Unconfirmed bookings"
       }
     }
   }

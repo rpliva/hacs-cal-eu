@@ -32,7 +32,7 @@ pip install -r requirements.txt
 The integration uses a `DataUpdateCoordinator` pattern for polling the Cal.com API every 5 minutes. The coordinator is stored in `entry.runtime_data` (HA 2026.x pattern, not `hass.data`).
 
 ```
-Cal.com API → CalEuDataUpdateCoordinator → Sensors
+Cal.com API → CalEuDataUpdateCoordinator → Calendar + Sensors
                      ↓
               Event bus (new booking events)
 ```
@@ -42,13 +42,18 @@ Cal.com API → CalEuDataUpdateCoordinator → Sensors
 | File | Purpose |
 |------|---------|
 | `__init__.py` | `CalEuDataUpdateCoordinator` - fetches bookings, fires new booking events |
-| `sensor.py` | Two sensors: bookings count + next booking timestamp |
+| `calendar.py` | Calendar entity showing bookings in HA calendar view |
+| `sensor.py` | Three sensors: bookings count, next booking, unconfirmed count |
 | `config_flow.py` | API key configuration with validation |
-| `const.py` | API URLs, HTTP codes, domain constant |
+| `const.py` | API URLs, HTTP codes, booking statuses, domain constant |
+
+### Calendar
+- **Calendar** (`calendar.cal_eu_calendar`): Shows bookings in HA calendar view
 
 ### Sensors
 - **Bookings** (`sensor.cal_eu_bookings`): Count as state, full booking array in attributes
 - **Next Booking** (`sensor.cal_eu_next_booking`): DateTime with `timestamp` device class
+- **Unconfirmed Bookings** (`sensor.cal_eu_unconfirmed_bookings`): Count of pending bookings
 
 ### Events
 `cal_eu_new_booking` is fired when a new booking UID appears (compares UIDs between refreshes, skips first load).

@@ -8,8 +8,10 @@ A Home Assistant custom integration for [Cal.eu](https://cal.eu) calendar bookin
 
 ## Features
 
+- **Calendar Entity**: View all upcoming bookings in Home Assistant's calendar
 - **Bookings Sensor**: Shows the count of upcoming bookings with full booking details in attributes
 - **Next Booking Sensor**: Displays the date/time of your next upcoming booking
+- **Unconfirmed Bookings Sensor**: Shows the count of pending/unconfirmed bookings
 - **New Booking Event**: Fires `cal_eu_new_booking` event when a new booking is detected
 
 ## Installation
@@ -37,6 +39,17 @@ A Home Assistant custom integration for [Cal.eu](https://cal.eu) calendar bookin
 3. Search for "Cal.eu"
 4. Enter your Cal.com API key (found in Settings > Security on cal.com)
 
+## Calendar
+
+### Cal.eu Calendar (`calendar.cal_eu_calendar`)
+
+Displays all upcoming bookings in Home Assistant's calendar view. Each booking shows:
+- Title, start/end times
+- Location
+- Attendees
+- Meeting URL
+- Status
+
 ## Sensors
 
 ### Bookings (`sensor.cal_eu_bookings`)
@@ -53,6 +66,12 @@ A Home Assistant custom integration for [Cal.eu](https://cal.eu) calendar bookin
 - **State**: DateTime of the next upcoming booking
 - **Device Class**: `timestamp` (displays as relative time)
 - **Attributes**: `title`, `end`, `location`, `meeting_url`
+
+### Unconfirmed Bookings (`sensor.cal_eu_unconfirmed_bookings`)
+
+- **State**: Number of pending/unconfirmed bookings
+- **Attributes**:
+  - `bookings`: Array of unconfirmed booking objects
 
 ## Events
 
