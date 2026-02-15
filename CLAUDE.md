@@ -8,7 +8,7 @@ Home Assistant custom integration for [Cal.eu/Cal.com](https://cal.eu) calendar 
 
 - **Domain**: `cal_eu`
 - **Python**: 3.13
-- **Home Assistant**: 2026.2.2+
+- **Home Assistant**: 2026.2.0+
 
 ## Development Commands
 
