@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Cal.eu",
+        "description": "Enter your Cal.com API key. You can find it in Settings > Security.",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Cal.com API",
+      "invalid_auth": "Invalid API key",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Cal.eu is already configured"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "bookings": {
+        "name": "Bookings"
+      },
+      "next_booking": {
+        "name": "Next booking"
+      }
+    }
+  }
+}
