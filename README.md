@@ -4,7 +4,7 @@
 [![Lint](https://github.com/rpliva/hacs-cal-eu/actions/workflows/lint.yml/badge.svg)](https://github.com/rpliva/hacs-cal-eu/actions/workflows/lint.yml)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
-A Home Assistant custom integration for [Cal.com](https://cal.eu) calendar booking service.
+A Home Assistant custom integration for [Cal.eu](https://cal.eu) calendar booking service.
 
 ## Features
 

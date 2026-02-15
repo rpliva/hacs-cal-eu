@@ -19,6 +19,11 @@
     }
   },
   "entity": {
+    "calendar": {
+      "calendar": {
+        "name": "Calendar"
+      }
+    },
     "sensor": {
       "bookings": {
         "name": "Bookings"
