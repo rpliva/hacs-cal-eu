@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+import logging
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
@@ -11,6 +12,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import CalEuDataUpdateCoordinator
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -27,6 +30,14 @@ async def async_setup_entry(
     """Set up Cal.eu calendar based on a config entry."""
     coordinator = entry.runtime_data
     async_add_entities([CalEuCalendar(coordinator, entry)])
+
+
+def _parse_datetime(dt_str: str) -> datetime:
+    """Parse ISO datetime string and ensure timezone awareness."""
+    dt = datetime.fromisoformat(dt_str)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt
 
 
 class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntity):
@@ -54,18 +65,27 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
     def event(self) -> CalendarEvent | None:
         """Return the next upcoming event."""
         if not self.coordinator.data:
+            _LOGGER.debug("No coordinator data available")
             return None
 
-        now = datetime.now().astimezone()
+        now = datetime.now(tz=UTC)
+        _LOGGER.debug(
+            "Looking for next event, now=%s, bookings=%d",
+            now,
+            len(self.coordinator.data),
+        )
 
         # Find the next event (first one that hasn't ended yet)
         for booking in sorted(
             self.coordinator.data,
-            key=lambda b: b.get("start", ""),
+            key=lambda b: b.get("startTime", ""),
         ):
-            end_str = booking.get("end")
+            end_str = booking.get("endTime")
             if end_str:
-                end_time = datetime.fromisoformat(end_str)
+                end_time = _parse_datetime(end_str)
+                _LOGGER.debug(
+                    "Checking booking: %s, end=%s", booking.get("title"), end_time
+                )
                 if end_time > now:
                     return self._booking_to_event(booking)
 
@@ -79,22 +99,39 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
     ) -> list[CalendarEvent]:
         """Return calendar events within a datetime range."""
         if not self.coordinator.data:
+            _LOGGER.debug("async_get_events: No coordinator data")
             return []
+
+        _LOGGER.debug(
+            "async_get_events: range=%s to %s, bookings=%d",
+            start_date,
+            end_date,
+            len(self.coordinator.data),
+        )
 
         events = []
         for booking in self.coordinator.data:
-            start_str = booking.get("start")
-            end_str = booking.get("end")
+            start_str = booking.get("startTime")
+            end_str = booking.get("endTime")
 
             if not start_str or not end_str:
+                _LOGGER.debug("Skipping booking without startTime/endTime: %s", booking)
                 continue
 
-            event_start = datetime.fromisoformat(start_str)
-            event_end = datetime.fromisoformat(end_str)
+            event_start = _parse_datetime(start_str)
+            event_end = _parse_datetime(end_str)
+
+            _LOGGER.debug(
+                "Booking: %s, start=%s, end=%s",
+                booking.get("title"),
+                event_start,
+                event_end,
+            )
 
             # Check if event overlaps with requested range
             if event_end >= start_date and event_start <= end_date:
                 events.append(self._booking_to_event(booking))
+                _LOGGER.debug("Added event: %s", booking.get("title"))
 
         return sorted(events, key=lambda e: e.start)
 
@@ -102,8 +139,8 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
         """Convert a booking dict to a CalendarEvent."""
         return CalendarEvent(
             summary=booking.get("title", "Cal.eu Booking"),
-            start=datetime.fromisoformat(booking["start"]),
-            end=datetime.fromisoformat(booking["end"]),
+            start=_parse_datetime(booking["startTime"]),
+            end=_parse_datetime(booking["endTime"]),
             location=booking.get("location"),
             description=self._build_description(booking),
             uid=booking.get("uid"),
@@ -122,8 +159,5 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
                 f"{a.get('name', 'Unknown')} ({a.get('email', '')})" for a in attendees
             ]
             parts.append(f"Attendees: {', '.join(attendee_strs)}")
-
-        if booking.get("meetingUrl"):
-            parts.append(f"Meeting URL: {booking['meetingUrl']}")
 
         return "\n".join(parts)

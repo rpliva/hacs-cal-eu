@@ -76,8 +76,8 @@ class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorE
                     "id": booking.get("id"),
                     "uid": booking.get("uid"),
                     "title": booking.get("title"),
-                    "start": booking.get("start"),
-                    "end": booking.get("end"),
+                    "start": booking.get("startTime"),
+                    "end": booking.get("endTime"),
                     "status": booking.get("status"),
                     "attendees": [
                         {
@@ -87,7 +87,6 @@ class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorE
                         for attendee in booking.get("attendees", [])
                     ],
                     "location": booking.get("location"),
-                    "meeting_url": booking.get("meetingUrl"),
                 }
                 for booking in self.coordinator.data
             ]
@@ -127,12 +126,12 @@ class CalEuNextBookingSensor(
 
         next_booking = min(
             self.coordinator.data,
-            key=lambda b: b.get("start", ""),
+            key=lambda b: b.get("startTime", ""),
             default=None,
         )
 
-        if next_booking and next_booking.get("start"):
-            return datetime.fromisoformat(next_booking["start"])
+        if next_booking and next_booking.get("startTime"):
+            return datetime.fromisoformat(next_booking["startTime"])
 
         return None
 
@@ -144,7 +143,7 @@ class CalEuNextBookingSensor(
 
         next_booking = min(
             self.coordinator.data,
-            key=lambda b: b.get("start", ""),
+            key=lambda b: b.get("startTime", ""),
             default=None,
         )
 
@@ -153,9 +152,8 @@ class CalEuNextBookingSensor(
 
         return {
             "title": next_booking.get("title"),
-            "end": next_booking.get("end"),
+            "end": next_booking.get("endTime"),
             "location": next_booking.get("location"),
-            "meeting_url": next_booking.get("meetingUrl"),
         }
 
 
@@ -208,8 +206,8 @@ class CalEuUnconfirmedBookingsSensor(
                     "id": booking.get("id"),
                     "uid": booking.get("uid"),
                     "title": booking.get("title"),
-                    "start": booking.get("start"),
-                    "end": booking.get("end"),
+                    "start": booking.get("startTime"),
+                    "end": booking.get("endTime"),
                     "attendees": [
                         {
                             "name": attendee.get("name"),
@@ -218,7 +216,6 @@ class CalEuUnconfirmedBookingsSensor(
                         for attendee in booking.get("attendees", [])
                     ],
                     "location": booking.get("location"),
-                    "meeting_url": booking.get("meetingUrl"),
                 }
                 for booking in unconfirmed
             ]

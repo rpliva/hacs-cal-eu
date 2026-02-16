@@ -123,8 +123,8 @@ class CalEuDataUpdateCoordinator(DataUpdateCoordinator[list[dict]]):
                     {
                         "uid": booking.get("uid"),
                         "title": booking.get("title"),
-                        "start": booking.get("start"),
-                        "end": booking.get("end"),
+                        "start": booking.get("startTime"),
+                        "end": booking.get("endTime"),
                         "status": booking.get("status"),
                         "attendees": [
                             {
@@ -134,7 +134,6 @@ class CalEuDataUpdateCoordinator(DataUpdateCoordinator[list[dict]]):
                             for attendee in booking.get("attendees", [])
                         ],
                         "location": booking.get("location"),
-                        "meeting_url": booking.get("meetingUrl"),
                     },
                 )
                 _LOGGER.debug("Fired new booking event for: %s", booking.get("title"))
