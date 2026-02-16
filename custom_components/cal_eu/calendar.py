@@ -33,7 +33,7 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
     """Calendar entity for Cal.eu bookings."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "calendar"
+    _attr_name = "Calendar"
 
     def __init__(
         self,

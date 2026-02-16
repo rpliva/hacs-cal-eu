@@ -39,7 +39,7 @@ class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorE
     """Sensor representing Cal.eu bookings count."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "bookings"
+    _attr_name = "Bookings"
     _attr_icon = "mdi:calendar"
 
     def __init__(
@@ -100,7 +100,7 @@ class CalEuNextBookingSensor(
     """Sensor representing the next upcoming Cal.eu booking date."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "next_booking"
+    _attr_name = "Next booking"
     _attr_icon = "mdi:calendar-clock"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
@@ -165,7 +165,7 @@ class CalEuUnconfirmedBookingsSensor(
     """Sensor representing the count of unconfirmed Cal.eu bookings."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "unconfirmed_bookings"
+    _attr_name = "Unconfirmed bookings"
     _attr_icon = "mdi:calendar-question"
 
     def __init__(
