@@ -6,6 +6,7 @@ CONF_API_KEY = "api_key"
 
 API_BASE_URL = "https://api.cal.eu/v2"
 API_BOOKINGS_ENDPOINT = "/bookings"
+API_SCHEDULES_ENDPOINT = "/schedules"
 
 DEFAULT_SCAN_INTERVAL = 300  # 5 minutes
 

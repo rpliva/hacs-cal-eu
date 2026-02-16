@@ -35,6 +35,13 @@ async def async_setup_entry(
     )
 
 
+def _get_bookings(coordinator: CalEuDataUpdateCoordinator) -> list[dict]:
+    """Get bookings from coordinator data."""
+    if not coordinator.data:
+        return []
+    return coordinator.data.get("bookings", [])
+
+
 class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorEntity):
     """Sensor representing Cal.eu bookings count."""
 
@@ -60,16 +67,12 @@ class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorE
     @property
     def native_value(self) -> int:
         """Return the number of upcoming bookings."""
-        if self.coordinator.data is None:
-            return 0
-        return len(self.coordinator.data)
+        return len(_get_bookings(self.coordinator))
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return the state attributes with booking details."""
-        if self.coordinator.data is None:
-            return {"bookings": []}
-
+        bookings = _get_bookings(self.coordinator)
         return {
             "bookings": [
                 {
@@ -88,7 +91,7 @@ class CalEuBookingsSensor(CoordinatorEntity[CalEuDataUpdateCoordinator], SensorE
                     ],
                     "location": booking.get("location"),
                 }
-                for booking in self.coordinator.data
+                for booking in bookings
             ]
         }
 
@@ -121,11 +124,12 @@ class CalEuNextBookingSensor(
     @property
     def native_value(self) -> datetime | None:
         """Return the start time of the next upcoming booking."""
-        if not self.coordinator.data:
+        bookings = _get_bookings(self.coordinator)
+        if not bookings:
             return None
 
         next_booking = min(
-            self.coordinator.data,
+            bookings,
             key=lambda b: b.get("startTime", ""),
             default=None,
         )
@@ -138,11 +142,12 @@ class CalEuNextBookingSensor(
     @property
     def extra_state_attributes(self) -> dict:
         """Return details of the next booking."""
-        if not self.coordinator.data:
+        bookings = _get_bookings(self.coordinator)
+        if not bookings:
             return {}
 
         next_booking = min(
-            self.coordinator.data,
+            bookings,
             key=lambda b: b.get("startTime", ""),
             default=None,
         )
@@ -183,11 +188,10 @@ class CalEuUnconfirmedBookingsSensor(
 
     def _get_unconfirmed_bookings(self) -> list[dict]:
         """Return list of unconfirmed bookings."""
-        if not self.coordinator.data:
-            return []
+        bookings = _get_bookings(self.coordinator)
         return [
             booking
-            for booking in self.coordinator.data
+            for booking in bookings
             if booking.get("status") == BOOKING_STATUS_PENDING
         ]
 

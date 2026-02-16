@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import (
     API_BASE_URL,
     API_BOOKINGS_ENDPOINT,
+    API_SCHEDULES_ENDPOINT,
     CONF_API_KEY,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -50,7 +51,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: CalEuConfigEntry) -> bo
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-class CalEuDataUpdateCoordinator(DataUpdateCoordinator[list[dict]]):
+class CalEuDataUpdateCoordinator(DataUpdateCoordinator[dict]):
     """Class to manage fetching Cal.eu data."""
 
     def __init__(
@@ -70,40 +71,59 @@ class CalEuDataUpdateCoordinator(DataUpdateCoordinator[list[dict]]):
         self._api_key = api_key
         self._known_booking_uids: set[str] = set()
 
-    async def _async_update_data(self) -> list[dict]:
-        """Fetch data from Cal.eu API."""
-        headers = {
+    def _get_headers(self) -> dict[str, str]:
+        """Return API headers."""
+        return {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
             "cal-api-version": datetime.now(tz=UTC).date().isoformat(),
         }
 
-        url = f"{API_BASE_URL}{API_BOOKINGS_ENDPOINT}"
-        params = {
-            "status": "upcoming",
-        }
-
+    async def _async_update_data(self) -> dict:
+        """Fetch data from Cal.eu API."""
         try:
-            async with self._session.get(
-                url, headers=headers, params=params
-            ) as response:
-                if response.status == HTTP_UNAUTHORIZED:
-                    msg = "Invalid API key"
-                    raise UpdateFailed(msg)
-                if response.status != HTTP_OK:
-                    msg = f"Error fetching data: {response.status}"
-                    raise UpdateFailed(msg)
-
-                data = await response.json()
-                bookings = data.get("data", {}).get("bookings", [])
-
-                self._fire_new_booking_events(bookings)
-
-                return bookings
-
+            bookings = await self._fetch_bookings()
+            schedules = await self._fetch_schedules()
         except aiohttp.ClientError as err:
             msg = f"Error communicating with API: {err}"
             raise UpdateFailed(msg) from err
+
+        self._fire_new_booking_events(bookings)
+
+        return {"bookings": bookings, "schedules": schedules}
+
+    async def _fetch_bookings(self) -> list[dict]:
+        """Fetch bookings from API."""
+        url = f"{API_BASE_URL}{API_BOOKINGS_ENDPOINT}"
+        params = {"status": "upcoming"}
+
+        async with self._session.get(
+            url, headers=self._get_headers(), params=params
+        ) as response:
+            if response.status == HTTP_UNAUTHORIZED:
+                msg = "Invalid API key"
+                raise UpdateFailed(msg)
+            if response.status != HTTP_OK:
+                msg = f"Error fetching bookings: {response.status}"
+                raise UpdateFailed(msg)
+
+            data = await response.json()
+            return data.get("data", {}).get("bookings", [])
+
+    async def _fetch_schedules(self) -> list[dict]:
+        """Fetch schedules from API."""
+        url = f"{API_BASE_URL}{API_SCHEDULES_ENDPOINT}"
+
+        async with self._session.get(url, headers=self._get_headers()) as response:
+            if response.status == HTTP_UNAUTHORIZED:
+                msg = "Invalid API key"
+                raise UpdateFailed(msg)
+            if response.status != HTTP_OK:
+                _LOGGER.warning("Error fetching schedules: %s", response.status)
+                return []
+
+            data = await response.json()
+            return data.get("data", [])
 
     def _fire_new_booking_events(self, bookings: list[dict]) -> None:
         """Fire events for newly detected bookings."""
