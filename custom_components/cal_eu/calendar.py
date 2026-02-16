@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import CalEuDataUpdateCoordinator
-from .const import DOMAIN
+from .const import BOOKING_STATUS_PENDING, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up Cal.eu calendar based on a config entry."""
     coordinator = entry.runtime_data
-    async_add_entities([CalEuCalendar(coordinator, entry)])
+    async_add_entities(
+        [
+            CalEuCalendar(coordinator, entry),
+            CalEuUnconfirmedCalendar(coordinator, entry),
+        ]
+    )
 
 
 def _parse_datetime(dt_str: str) -> datetime:
@@ -152,6 +157,109 @@ class CalEuCalendar(CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntit
 
         if booking.get("status"):
             parts.append(f"Status: {booking['status']}")
+
+        attendees = booking.get("attendees", [])
+        if attendees:
+            attendee_strs = [
+                f"{a.get('name', 'Unknown')} ({a.get('email', '')})" for a in attendees
+            ]
+            parts.append(f"Attendees: {', '.join(attendee_strs)}")
+
+        return "\n".join(parts)
+
+
+class CalEuUnconfirmedCalendar(
+    CoordinatorEntity[CalEuDataUpdateCoordinator], CalendarEntity
+):
+    """Calendar entity for unconfirmed Cal.eu bookings."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Unconfirmed calendar"
+
+    def __init__(
+        self,
+        coordinator: CalEuDataUpdateCoordinator,
+        entry: CalEuConfigEntry,
+    ) -> None:
+        """Initialize the calendar."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_unconfirmed_calendar"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="Cal.eu",
+            manufacturer="Cal.com",
+            model="Calendar",
+        )
+
+    def _get_unconfirmed_bookings(self) -> list[dict]:
+        """Return list of unconfirmed bookings."""
+        if not self.coordinator.data:
+            return []
+        return [
+            booking
+            for booking in self.coordinator.data
+            if booking.get("status") == BOOKING_STATUS_PENDING
+        ]
+
+    @property
+    def event(self) -> CalendarEvent | None:
+        """Return the next upcoming unconfirmed event."""
+        bookings = self._get_unconfirmed_bookings()
+        if not bookings:
+            return None
+
+        now = datetime.now(tz=UTC)
+
+        for booking in sorted(bookings, key=lambda b: b.get("startTime", "")):
+            end_str = booking.get("endTime")
+            if end_str:
+                end_time = _parse_datetime(end_str)
+                if end_time > now:
+                    return self._booking_to_event(booking)
+
+        return None
+
+    async def async_get_events(
+        self,
+        hass: HomeAssistant,  # noqa: ARG002
+        start_date: datetime,
+        end_date: datetime,
+    ) -> list[CalendarEvent]:
+        """Return unconfirmed calendar events within a datetime range."""
+        bookings = self._get_unconfirmed_bookings()
+        if not bookings:
+            return []
+
+        events = []
+        for booking in bookings:
+            start_str = booking.get("startTime")
+            end_str = booking.get("endTime")
+
+            if not start_str or not end_str:
+                continue
+
+            event_start = _parse_datetime(start_str)
+            event_end = _parse_datetime(end_str)
+
+            if event_end >= start_date and event_start <= end_date:
+                events.append(self._booking_to_event(booking))
+
+        return sorted(events, key=lambda e: e.start)
+
+    def _booking_to_event(self, booking: dict) -> CalendarEvent:
+        """Convert a booking dict to a CalendarEvent."""
+        return CalendarEvent(
+            summary=booking.get("title", "Cal.eu Booking"),
+            start=_parse_datetime(booking["startTime"]),
+            end=_parse_datetime(booking["endTime"]),
+            location=booking.get("location"),
+            description=self._build_description(booking),
+            uid=booking.get("uid"),
+        )
+
+    def _build_description(self, booking: dict) -> str:
+        """Build event description from booking details."""
+        parts = []
 
         attendees = booking.get("attendees", [])
         if attendees:
