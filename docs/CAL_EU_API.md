@@ -33,25 +33,70 @@ Fetch bookings list.
 **Response Structure:**
 ```json
 {
+  "status": "success",
   "data": {
     "bookings": [
       {
         "id": 123,
         "uid": "booking-uid-abc",
         "title": "Meeting Title",
-        "start": "2026-02-16T10:00:00Z",
-        "end": "2026-02-16T11:00:00Z",
-        "status": "accepted",
+        "startTime": "2026-02-16T10:00:00.000Z",
+        "endTime": "2026-02-16T11:00:00.000Z",
+        "status": "ACCEPTED",
         "attendees": [
-          {"name": "John Doe", "email": "john@example.com"}
+          {"name": "John Doe", "email": "john@example.com", "timeZone": "Europe/Prague"}
         ],
-        "location": "Conference Room",
-        "meetingUrl": "https://cal.eu/video/xyz"
+        "location": "https://zoom.us/...",
+        "user": {
+          "name": "Owner Name",
+          "email": "owner@example.com"
+        }
       }
     ]
   }
 }
 ```
+
+**Note:** API uses `startTime`/`endTime` (not `start`/`end`) and status is uppercase (`ACCEPTED`, `PENDING`).
+
+### GET /v2/schedules
+Fetch availability schedules.
+
+**Response Structure:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 12713,
+      "name": "Schedule Name",
+      "timeZone": "Europe/Prague",
+      "isDefault": true,
+      "schedule": [
+        {
+          "id": 315152,
+          "days": [],
+          "startTime": "1970-01-01T09:00:00.000Z",
+          "endTime": "1970-01-01T10:00:00.000Z",
+          "date": "2026-02-17T00:00:00.000Z"
+        }
+      ],
+      "dateOverrides": [
+        {
+          "ranges": [
+            {
+              "start": "2026-02-17T09:00:00.000Z",
+              "end": "2026-02-17T10:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Note:** The integration uses `dateOverrides` for availability slots as it provides full datetime ranges.
 
 ## Other Available Endpoints (Not Yet Implemented)
 
@@ -68,7 +113,6 @@ Fetch bookings list.
 - `DELETE /v2/event-types/:id` - Delete event type
 
 ### Schedules
-- `GET /v2/schedules` - List availability schedules
 - `POST /v2/schedules` - Create schedule
 - `PATCH /v2/schedules/:id` - Update schedule
 

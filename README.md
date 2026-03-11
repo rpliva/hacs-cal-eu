@@ -4,13 +4,17 @@
 [![Lint](https://github.com/rpliva/hacs-cal-eu/actions/workflows/lint.yml/badge.svg)](https://github.com/rpliva/hacs-cal-eu/actions/workflows/lint.yml)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
-A Home Assistant custom integration for [Cal.com](https://cal.eu) calendar booking service.
+A Home Assistant custom integration for [Cal.eu](https://cal.eu) calendar booking service.
 
 ## Features
 
-- **Bookings Sensor**: Shows the count of upcoming bookings with full booking details in attributes
-- **Next Booking Sensor**: Displays the date/time of your next upcoming booking
-- **New Booking Event**: Fires `cal_eu_new_booking` event when a new booking is detected
+- **Calendar Entities**: View bookings and availability in Home Assistant's calendar
+  - All bookings calendar
+  - Confirmed bookings calendar
+  - Unconfirmed bookings calendar
+  - Availability schedule calendar
+- **Sensors**: Track booking counts and next booking time
+- **Events**: Get notified when new bookings are created
 
 ## Installation
 
@@ -37,6 +41,24 @@ A Home Assistant custom integration for [Cal.com](https://cal.eu) calendar booki
 3. Search for "Cal.eu"
 4. Enter your Cal.com API key (found in Settings > Security on cal.com)
 
+## Calendars
+
+### All Bookings (`calendar.cal_eu_calendar`)
+
+Displays all upcoming bookings in Home Assistant's calendar view.
+
+### Confirmed Bookings (`calendar.cal_eu_confirmed_calendar`)
+
+Displays only confirmed/accepted bookings.
+
+### Unconfirmed Bookings (`calendar.cal_eu_unconfirmed_calendar`)
+
+Displays only pending/unconfirmed bookings awaiting confirmation.
+
+### Availability (`calendar.cal_eu_availability`)
+
+Displays your availability schedule - time slots when you're available for bookings.
+
 ## Sensors
 
 ### Bookings (`sensor.cal_eu_bookings`)
@@ -46,13 +68,19 @@ A Home Assistant custom integration for [Cal.com](https://cal.eu) calendar booki
   - `bookings`: Array of booking objects containing:
     - `id`, `uid`, `title`, `start`, `end`, `status`
     - `attendees`: List of attendee names and emails
-    - `location`, `meeting_url`
+    - `location`
 
 ### Next Booking (`sensor.cal_eu_next_booking`)
 
 - **State**: DateTime of the next upcoming booking
 - **Device Class**: `timestamp` (displays as relative time)
-- **Attributes**: `title`, `end`, `location`, `meeting_url`
+- **Attributes**: `title`, `end`, `location`
+
+### Unconfirmed Bookings (`sensor.cal_eu_unconfirmed_bookings`)
+
+- **State**: Number of pending/unconfirmed bookings
+- **Attributes**:
+  - `bookings`: Array of unconfirmed booking objects
 
 ## Events
 
@@ -63,14 +91,13 @@ Fired when a new booking is detected. Event data includes:
 ```yaml
 uid: "booking-uid-123"
 title: "Meeting with John"
-start: "2024-02-16T10:00:00Z"
-end: "2024-02-16T11:00:00Z"
-status: "accepted"
+start: "2026-02-16T10:00:00Z"
+end: "2026-02-16T11:00:00Z"
+status: "ACCEPTED"
 attendees:
   - name: "John Doe"
     email: "john@example.com"
-location: "Conference Room A"
-meeting_url: "https://cal.eu/video/abc123"
+location: "https://zoom.us/..."
 ```
 
 ## Automation Example

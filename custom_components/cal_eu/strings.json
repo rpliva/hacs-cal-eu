@@ -17,15 +17,5 @@
     "abort": {
       "already_configured": "Cal.eu is already configured"
     }
-  },
-  "entity": {
-    "sensor": {
-      "bookings": {
-        "name": "Bookings"
-      },
-      "next_booking": {
-        "name": "Next booking"
-      }
-    }
   }
 }
